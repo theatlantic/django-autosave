@@ -1,17 +1,14 @@
 import copy
-from django.contrib import messages
-from django.contrib import admin
-from django.conf.urls.defaults import url, patterns
-from functools import update_wrapper
-
 import time
 import simplejson as json
-from django.http import HttpResponse, Http404
-from django.db.models.loading import get_model
+from django.contrib import messages
+from django.conf.urls.defaults import url, patterns
+from django.conf import settings
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ImproperlyConfigured
 
-class AdminAutoSaveMixin(admin.ModelAdmin):
+class AdminAutoSaveMixin(object):
 
     autosave_last_modified_field = None
 
@@ -82,5 +79,16 @@ class AdminAutoSaveMixin(admin.ModelAdmin):
         )
         return extra_urls + urls
 
-    class Media:
-        js = ('autosave/js/autosave.js', )
+    @property
+    def media(self):
+        base_media = super(AdminAutoSaveMixin, self).media
+        base_media.add_js((
+            "%sautosave/js/autosave.js" % settings.STATIC_URL,
+        ))
+        base_media.add_css({
+            'all': {},
+        })
+        return base_media
+
+    # class Media:
+        # js = ('autosave/js/autosave.js', )
