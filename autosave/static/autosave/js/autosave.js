@@ -2,11 +2,11 @@
 
     window.Autosave = {};
 
-    $(document).on('ready', function(){
+    $(document).on('ready', function() {
         Autosave.setUp(); 
     });
 
-    $(document).on('click', '[href=#ignore-autosaved]', function(e){
+    $(document).on('click', '[href=#ignore-autosaved]', function(e) {
         // Clicking this should remove the banner and start autosaving again, replacing
         // the old version.
         var $btn = $(e.target);
@@ -15,19 +15,19 @@
         window.setInterval(Autosave.save, 5000);
     });
 
-    $(document).on('click', '[href=#revert-to-autosaved]', function(e){
+    $(document).on('click', '[href=#revert-to-autosaved]', function(e) {
         // Regenerates the form to submit old data, and posts it.
         
         // Handle banner
         var $btn = $(e.target);
         var $banner = $btn.closest('p');
-        $banner[0].innerText = "Reverting to your saved version. Be right back...";
+        $banner.text("Reverting to your saved version. Be right back...");
         
         // Generate new form data
         var form = $('form');
         form.find('input', 'textarea', '[name]').prop('disabled',true); // Clear the existing form
         var data = JSON.parse(Autosave.retrieve()[0]);
-        data.forEach(function(obj){
+        data.forEach(function(obj) {
             var input = $('<input type="hidden" />')[0];
             input.name = obj.name;
             input.value = obj.value;
@@ -37,7 +37,7 @@
         // The CSRF token can change and cause 403's. Always use the current one.
         document.getElementsByName('csrfmiddlewaretoken')[0].value = Autosave.csrf_token;
 
-        function addAutoSaveRetrieveField(){
+        function addAutoSaveRetrieveField() {
             // This adds an element to the page that tells Django forms
             // to deliberately fail validation, and return the autosaved contents.
             var input = $('<input type="hidden" />')[0];
@@ -51,9 +51,9 @@
     });
 
 
-    Autosave.setUp = function(){
+    Autosave.setUp = function() {
         Autosave.csrf_token = document.getElementsByName('csrfmiddlewaretoken')[0].value;
-        Autosave.timestamp = $.get('last-modified/', function(data){ // Get the last updated value from the server
+        Autosave.timestamp = $.get('last-modified/', function(data) { // Get the last updated value from the server
             var last_updated = parseInt(data.last_updated_epoch, 0) + 15; // An arbitrary margin of error to deal with clock sync
             var last_autosaved = parseInt(Autosave.retrieve()[1], 0);
 
@@ -71,7 +71,7 @@
     };
 
 
-    Autosave.contentIsDifferent = function(){
+    Autosave.contentIsDifferent = function() {
         // Determines if the autosaved data is different than the current version.
 
         var saved = Autosave.retrieve()[0];
@@ -89,7 +89,7 @@
         var ignore_fields = ['csrfmiddlewaretoken'];
         
         // If they're not even the same length, abort.       
-        if (saved.length !== current.length){
+        if (saved.length !== current.length) {
             return false;
         }
         for (var i = saved.length - 1; i >= 0; i--) {
@@ -100,13 +100,13 @@
         return false;
     };
 
-    function now(){
+    function now() {
         // This is slightly ridiculous because javascript's epoch time is
         // in milliseconds by default. We need seconds.
         return Math.round((new Date).getTime()/1000,0);
     }
 
-    Autosave.suggestRevert = function(last_autosaved){
+    Autosave.suggestRevert = function(last_autosaved) {
         var form = $('form');
         var msg = [
             "It looks like you have a more recent version autosaved at ",
@@ -122,16 +122,16 @@
         $alert.fadeIn();
     };
 
-    Autosave.getFormName = function(){
+    Autosave.getFormName = function() {
         // Key names are unique to the page/uri
         return "autosaved_form.data:" + window.location.pathname;
     };
-    Autosave.getTimeStampName = function(){
+    Autosave.getTimeStampName = function() {
         // Key names are unique to the page/uri
         return "autosaved_form.timestamp:" + window.location.pathname;
     };
     
-    Autosave.captureForm = function(){
+    Autosave.captureForm = function() {
 
         var form = $('form');
         var fields = $('form').find('textarea, [name][value]'); // Textareas don't have a value attr, need to be special
@@ -144,7 +144,7 @@
         return JSON.stringify(field_list);
     };
 
-    Autosave.save = function(){
+    Autosave.save = function() {
         // Cast all the CKEditor instances to their fields
         if (window.CKEDITOR) {
             for (instance in CKEDITOR.instances){
@@ -156,14 +156,14 @@
         localStorage.setItem(Autosave.getTimeStampName(), now());
     };
 
-    Autosave.retrieve = function(){
+    Autosave.retrieve = function() {
         // Get what's in storage
         var data = localStorage.getItem(Autosave.getFormName());
         var timestamp = localStorage.getItem(Autosave.getTimeStampName());
         return [data, timestamp];
     };
 
-    Autosave.disableWidgets = function(){
+    Autosave.disableWidgets = function() {
         // This has to be done before rewriting the form.
         if (window.CKEDITOR) {
             for (instance in CKEDITOR.instances){
@@ -171,8 +171,6 @@
             }
         }
     };
-
-    return Autosave;
 
 
 })(django.jQuery); // Must use Django jQuery because Django-CKEditor modifies it.

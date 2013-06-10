@@ -2,4 +2,4 @@
 .DS_Store
 build
 
-autosave.egg-info
+*.egg-info
