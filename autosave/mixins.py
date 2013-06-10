@@ -16,8 +16,10 @@ class AdminAutoSaveMixin(admin.ModelAdmin):
     autosave_last_modified_field = None
 
     def get_form(self, request, obj=None, **kwargs):
-        """ This is a filthy hack that allows us to return the posted
-        data without saving by forcing validation to fail with no errors. """
+        """
+        This is a filthy hack that allows us to return the posted
+        data without saving by forcing validation to fail with no errors.
+        """
         Form = super(AdminAutoSaveMixin, self).get_form(request, obj=obj, **kwargs)
         if 'is_retrieved_from_autosave' in request.POST:
 
@@ -33,7 +35,8 @@ class AdminAutoSaveMixin(admin.ModelAdmin):
 
 
     def last_updated(self, request, obj_id):
-        """ Simple JSON view to get the last updated time in both ISO and epoch.
+        """
+        Simple JSON view to get the last updated time in both ISO and epoch.
         Is based on the admin's "last_updated_field".
 
         class MyAdmin(admin.ModelAdmin):
@@ -71,7 +74,7 @@ class AdminAutoSaveMixin(admin.ModelAdmin):
 
 
     def get_urls(self):
-        """ Adds a last-modified checker to the admin urls. """
+        """Adds a last-modified checker to the admin urls."""
 
         urls = super(AdminAutoSaveMixin, self).get_urls()
         extra_urls = patterns('',

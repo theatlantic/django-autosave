@@ -27,7 +27,8 @@
         var form = $('form');
         form.find('input', 'textarea', '[name]').prop('disabled',true); // Clear the existing form
         var data = JSON.parse(Autosave.retrieve()[0]);
-        data.forEach(function(obj) {
+        
+        $.each(data, function(i, obj) {
             var input = $('<input type="hidden" />')[0];
             input.name = obj.name;
             input.value = obj.value;
