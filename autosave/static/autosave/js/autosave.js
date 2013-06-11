@@ -10,7 +10,7 @@
         // Clicking this should remove the banner and start autosaving again, replacing
         // the old version.
         var $btn = $(e.target);
-        var $note = $btn.closest('p');
+        var $note = $btn.closest('li');
         $note.fadeOut('fast');
         window.setInterval(Autosave.save, 5000);
     });
