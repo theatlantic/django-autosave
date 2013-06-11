@@ -101,6 +101,3 @@ class AdminAutoSaveMixin(object):
             'all': {},
         })
         return base_media
-
-    # class Media:
-        # js = ('autosave/js/autosave.js', )
