@@ -81,14 +81,13 @@
         // Parse and compare each field
         saved = JSON.parse(saved);
         current = JSON.parse(current);
-        var ignore_fields = ['csrfmiddlewaretoken'];
         
         // If they're not even the same length, they're different.       
         if (saved.length !== current.length) {
             return true;
         }
         for (var i = saved.length - 1; i >= 0; i--) {
-            if(saved[i].value !== current[i].value && ignore_fields.indexOf(saved[i].name ) === -1 ){
+            if(saved[i].value !== current[i].value && saved[i].name !== 'csrfmiddlewaretoken' ){
                 return true; // The values for non-ignored fields should be identical
             }
         }
