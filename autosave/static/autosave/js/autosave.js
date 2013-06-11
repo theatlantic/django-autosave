@@ -83,9 +83,9 @@
         current = JSON.parse(current);
         var ignore_fields = ['csrfmiddlewaretoken'];
         
-        // If they're not even the same length, abort.       
+        // If they're not even the same length, they're different.       
         if (saved.length !== current.length) {
-            return false;
+            return true;
         }
         for (var i = saved.length - 1; i >= 0; i--) {
             if(saved[i].value !== current[i].value && ignore_fields.indexOf(saved[i].name ) === -1 ){
@@ -102,18 +102,27 @@
     }
 
     Autosave.suggestRevert = function(last_autosaved) {
-        var form = $('form');
         var msg = [
             "It looks like you have a more recent version autosaved at ",
             Date(last_autosaved).toLocaleString(),
             ". <a href='#revert-to-autosaved'>Revert to that</a> or",
             " <a href='#ignore-autosaved'>continue with this version</a>?"
         ].join('');
-        var $alert = $('<p />');
-        $alert.addClass('errornote');
+        var $alert = $('<li />');
+        $alert.addClass('warning');
         $alert.hide();
         $alert.html(msg);
-        form.before($alert);
+
+        var $messagelist = $('.messagelist');
+        var $container = $('#content, #content-inner'); // Support both Admin and Grapelli
+        if ($messagelist.length === 0) { 
+            // Put messagelist in place if it's not already there
+            $messagelist = $('<ul />');
+            $messagelist.addClass('messagelist grp-messagelist');
+            $container.prepend($messagelist);
+        }
+
+        $messagelist.append($alert);
         $alert.fadeIn();
     };
 
