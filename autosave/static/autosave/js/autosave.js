@@ -41,9 +41,7 @@
         function addAutoSaveRetrieveField() {
             // This adds an element to the page that tells Django forms
             // to deliberately fail validation, and return the autosaved contents.
-            var input = $('<input type="hidden" />')[0];
-            input.name = 'is_retrieved_from_autosave';
-            input.value = 1;
+            var input = $('<input type="hidden" name="is_retrieved_from_autosave" value="1" />');
             $('form').append(input);
         }
         addAutoSaveRetrieveField();
