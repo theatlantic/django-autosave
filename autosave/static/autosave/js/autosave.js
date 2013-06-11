@@ -53,6 +53,12 @@
 
 
     Autosave.setUp = function() {
+        var obj_id = window.location.pathname.split('/').reverse()[1];
+        if (window.localStorage === undefined){
+            // Requires local storage.
+            return false;
+        }
+
         Autosave.csrf_token = document.getElementsByName('csrfmiddlewaretoken')[0].value;
         Autosave.timestamp = $.get('last-modified/', function(data) { // Get the last updated value from the server
             var last_updated = parseInt(data.last_updated_epoch, 0) + 15; // An arbitrary margin of error to deal with clock sync
@@ -142,18 +148,13 @@
         var field;
         for (var i = fields.length - 1; i >= 0; i--) {
             field = fields[i];
-            field_list.push({ 'name': field.name, 'value': field.value });
+            field_list.push({ 'name': field.name, 'value': $(field).val() });
+            // Val has to come from JQuery because CKeditor hooks it's update function in there.
         }
         return JSON.stringify(field_list);
     };
 
     Autosave.save = function() {
-        // Cast all the CKEditor instances to their fields
-        if (window.CKEDITOR) {
-            for (instance in CKEDITOR.instances){
-                CKEDITOR.instances[instance].updateElement();
-            }
-        }
         var data = Autosave.captureForm();
         localStorage.setItem(Autosave.getFormName(), data);
         localStorage.setItem(Autosave.getTimeStampName(), now());
@@ -165,15 +166,5 @@
         var timestamp = localStorage.getItem(Autosave.getTimeStampName());
         return [data, timestamp];
     };
-
-    Autosave.disableWidgets = function() {
-        // This has to be done before rewriting the form.
-        if (window.CKEDITOR) {
-            for (instance in CKEDITOR.instances){
-                CKEDITOR.instances[instance].destroy();
-            }
-        }
-    };
-
 
 })(django.jQuery); // Must use Django jQuery because Django-CKEditor modifies it.
