@@ -61,6 +61,9 @@
 
         Autosave.csrf_token = document.getElementsByName('csrfmiddlewaretoken')[0].value;
         Autosave.timestamp = $.get('last-modified/', function(data) { // Get the last updated value from the server
+            if (data.last_updated_epoch === null){
+                return false; // No date means this object doesn't exist yet.
+            }
             var last_updated = parseInt(data.last_updated_epoch, 0) + 15; // An arbitrary margin of error to deal with clock sync
             var last_autosaved = parseInt(Autosave.retrieve()[1], 0);
 

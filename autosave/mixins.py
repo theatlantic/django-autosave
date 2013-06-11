@@ -43,7 +43,17 @@ class AdminAutoSaveMixin(object):
 
         """
         admin_class_name = ".".join([self.__module__, self.__class__.__name__]) # Used in error messages
-        obj = get_object_or_404(self.model, id=obj_id)
+        try:
+            obj = get_object_or_404(self.model, id=obj_id)
+        except ValueError:
+            # If the object id is something like 'add', return null values.
+            output = {
+                'last_updated': None,
+                'last_updated_epoch': None,
+            }
+            output = json.dumps(output)
+            return HttpResponse(output, mimetype="application/json")
+
 
         # Break if the admin doesn't have a 'autosave_last_modified_field' property
         if not self.autosave_last_modified_field:
@@ -75,7 +85,9 @@ class AdminAutoSaveMixin(object):
 
         urls = super(AdminAutoSaveMixin, self).get_urls()
         extra_urls = patterns('',
-            url(r'^(?P<obj_id>\d+)/last-modified/$', self.last_updated),
+            # This has to be \w because if it's not, parameters following the obj_id will be
+            # caught up in the regular change_view url pattern, and 500.
+            url(r'^(?P<obj_id>\w+)/last-modified/$', self.last_updated),
         )
         return extra_urls + urls
 
