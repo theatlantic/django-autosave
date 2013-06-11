@@ -78,12 +78,6 @@
         var saved = Autosave.retrieve()[0];
         var current = Autosave.captureForm();
 
-        // Clean pagebreak. This is dirty and belongs elsewhere.
-        var re_pattern = new RegExp(/<div class="pagebreak">[\s\S]+<\/div>/g);
-        var pagebreak_markup = '<div class="pagebreak"></div>';
-        saved = saved.replace(re_pattern, pagebreak_markup);
-        current = current.replace(re_pattern, pagebreak_markup);
-
         // Parse and compare each field
         saved = JSON.parse(saved);
         current = JSON.parse(current);
