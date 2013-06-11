@@ -51,8 +51,11 @@
 
 
     Autosave.setUp = function() {
-        var obj_id = window.location.pathname.split('/').reverse()[1];
-        if (window.localStorage === undefined){
+        
+        function pageIsChangeListView(){
+            return $('#changelist-form').length == 1;
+        }
+        if (window.localStorage === undefined || pageIsChangeListView()) {
             // Requires local storage.
             return false;
         }
