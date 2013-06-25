@@ -118,7 +118,7 @@
             " <a href='#ignore-autosaved'>continue with this version</a>?"
         ].join('');
         var $alert = $('<li />');
-        $alert.addClass('warning');
+        $alert.addClass('info');
         $alert.hide();
         $alert.html(msg);
 
