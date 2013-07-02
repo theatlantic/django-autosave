@@ -1,5 +1,6 @@
 import copy
 import time
+import datetime
 import simplejson as json
 from django.contrib import messages
 from django.conf.urls.defaults import url, patterns
@@ -63,6 +64,11 @@ class AdminAutoSaveMixin(object):
             raise ImproperlyConfigured(error_message)
 
         updated = getattr(obj, self.autosave_last_modified_field, None)
+
+        # Make sure date modified time doesn't predate Unix-time.
+        # I'm pretty confident they didn't do any Django autosaving in 1969.
+        updated = max(updated, datetime.datetime(year=1970, month=1, day=1))
+
         # Break if the field doesn't exist
         if not updated:
             error_message = """Autosave isn't set up correctly. {admin}.autosave_last_modified_field is
