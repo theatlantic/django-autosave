@@ -1,174 +1,253 @@
+var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
+
 (function($) {
 
-    window.Autosave = {};
-
-    $(document).on('ready', function() {
-        Autosave.setUp(); 
+    $(document).ready(function() {
+        // If django-ckeditor is installed, wait until ckeditor has modified
+        // the textarea instances.
+        // If this is not done, we will occasionally prompt the user erroneously
+        // that they have changes in their autosave, when all that has happened is
+        // that CKEDITOR has modified the value with html through its content filters.
+        if (typeof window.CKEDITOR !== 'undefined' && $('.django-ckeditor-textarea').length) {
+            DjangoAutosave.onCKEditorLoad(DjangoAutosave.setup);
+        } else {
+            DjangoAutosave.setup();
+        }
     });
 
     $(document).on('click', '[href=#ignore-autosaved]', function(e) {
         // Clicking this should remove the banner and start autosaving again, replacing
         // the old version.
-        var $btn = $(e.target);
-        var $note = $btn.closest('li');
-        $note.fadeOut('fast');
-        window.setInterval(Autosave.save, 5000);
+        e.preventDefault();
+        $(e.target).closest('li').fadeOut('fast');
+        DjangoAutosave.save();
+        setTimeout(DjangoAutosave.save, 5000);
     });
 
+    $(document).on('click', '[href="#delete-autosave"]', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (confirm("Are you sure you want to delete your autosave?")) {
+            $(e.target).closest('li').fadeOut('fast');
+            DjangoAutosave.clear();
+            if (DjangoAutosave.config.is_recovered_autosave) {
+                window.location.reload(true);
+            }
+        }
+    });
+
+    // Regenerates the form to submit old data, and posts it.
     $(document).on('click', '[href=#revert-to-autosaved]', function(e) {
-        // Regenerates the form to submit old data, and posts it.
-        
-        // Handle banner
-        var $btn = $(e.target);
-        var $banner = $btn.closest('p');
-        $banner.text("Reverting to your saved version. Be right back...");
-        
+        e.preventDefault();
+
         // Generate new form data
-        var form = $('form');
-        form.find('input', 'textarea', '[name]').prop('disabled',true); // Clear the existing form
-        var data = JSON.parse(Autosave.retrieve()[0]);
-        
-        $.each(data, function(i, obj) {
-            var input = $('<input type="hidden" />')[0];
-            input.name = obj.name;
-            input.value = obj.value;
-            $('form').append(input);
+        var $form = $('form');
+        // Disable the existing form
+        $form.find(':input:not([name="csrfmiddlewaretoken"])').prop('disabled', true);
+        var data = DjangoAutosave.retrieve();
+
+        $.each(data.formValues, function(i, attributes) {
+            $('<input type="hidden" />').attr(attributes).appendTo($form);
         });
 
         // The CSRF token can change and cause 403's. Always use the current one.
-        document.getElementsByName('csrfmiddlewaretoken')[0].value = Autosave.csrf_token;
-
-        function addAutoSaveRetrieveField() {
-            // This adds an element to the page that tells Django forms
-            // to deliberately fail validation, and return the autosaved contents.
-            var input = $('<input type="hidden" name="is_retrieved_from_autosave" value="1" />');
-            $('form').append(input);
+        if (DjangoAutosave.csrf_token) {
+            $(':input[name="csrfmiddlewaretoken"]').val(DjangoAutosave.csrf_token);
         }
-        addAutoSaveRetrieveField();
-        form.submit();
 
+        // This adds an element to the page that tells Django forms
+        // to deliberately fail validation, and return the autosaved contents.
+        $form.append($('<input type="hidden" name="is_retrieved_from_autosave" value="1"/>'));
+        $form.submit();
     });
 
+    // django-locking (version >= 2.2.0) support
+    $(document).on('locking:disabled', function() { $('#autosave-message').hide(); });
+    $(document).on('locking:enabled',  function() { $('#autosave-message').show(); });
 
-    Autosave.setUp = function() {
-        
-        function pageIsChangeListView(){
-            return $('#changelist-form').length == 1;
+    DjangoAutosave.setup = function() {
+        if (typeof DjangoAutosave.config != 'object') {
+            return false;
         }
-        if (window.localStorage === undefined || pageIsChangeListView()) {
+
+        if (window.localStorage === undefined){
             // Requires local storage.
             return false;
         }
 
-        Autosave.csrf_token = document.getElementsByName('csrfmiddlewaretoken')[0].value;
-        Autosave.timestamp = $.get('last-modified/', function(data) { // Get the last updated value from the server
-            if (data.last_updated_epoch === null){
-                return false; // No date means this object doesn't exist yet.
-            }
-            var last_updated = parseInt(data.last_updated_epoch, 0) + 15; // An arbitrary margin of error to deal with clock sync
-            var last_autosaved = parseInt(Autosave.retrieve()[1], 0);
+        DjangoAutosave.csrf_token = $('[name="csrfmiddlewaretoken"]').val();
 
-            // If last_updated is more recent, than this story was probably edited by someone else/another device.
-            // If the content is not different, the user probably just closed a window or went to get coffee and close a tab,
-            // but had already saved their work.
-            if ( last_autosaved > last_updated && Autosave.contentIsDifferent() ) {
-                // Suggest revert
-                Autosave.suggestRevert(last_autosaved);
-            } else {
-                // Start Saving Again
-                window.setInterval(Autosave.save, 5000);
+        var data = DjangoAutosave.retrieve();
+        var config = DjangoAutosave.config;
+        var last_updated;
+
+        if (config.last_updated_epoch === null && !config.is_add_view) {
+            // No date means this object doesn't exist yet.
+            return false;
+        }
+        if (config.is_add_view) {
+            // On add_view, there is no timestamp for comparison.
+            // Also no risk of changes being overwritten.
+            last_updated = 0;
+        } else {
+            if (config.last_updated_epoch === null) {
+                return false;
             }
-        });
+            // 15 = an arbitrary margin of error (in seconds) to deal with clock sync
+            last_updated = 15 + config.last_updated_epoch + config.client_time_offset;
+        }
+
+        // If last_updated is more recent, than this story was probably edited by someone else/another device.
+        // If the content is not different, the user probably just closed a window or went to get coffee and close a tab,
+        // but had already saved their work.
+        if (!config.is_recovered_autosave && data.timestamp > last_updated && DjangoAutosave.contentIsDifferent()) {
+            // Suggest revert
+            DjangoAutosave.suggestRevert(data.timestamp);
+        } else {
+            // Start Saving Again
+            setTimeout(DjangoAutosave.save, 5000);
+        }
     };
 
+    DjangoAutosave.onCKEditorLoad = function(callback) {
+        if (typeof window.CKEDITOR === 'undefined') {
+            return callback();
+        }
+        var $textareas = $(".django-ckeditor-textarea");
 
-    Autosave.contentIsDifferent = function() {
+        var totalEditors = $textareas.length;
+        var readyHandlerCalled = {};
+
+        var loaded = false;
+
+        switch (CKEDITOR.status) {
+            case 'basic_ready':
+            case 'ready':
+                return callback();
+            default:
+                $textareas.each(function(i, textarea) {
+                    var $textarea = $(textarea);
+                    var editor = $textarea.data('ckeditorInstance');
+                    if (editor && editor.status == 'ready') {
+                        totalEditors--;
+                    }
+                });
+                if (totalEditors === 0) {
+                    return callback();
+                }
+                CKEDITOR.on('instanceReady', function(e) {
+                    var editor = e.editor;
+                    var textarea = editor.element.$;
+                    var dataId = textarea[$.expando];
+                    if (dataId) {
+                        if (readyHandlerCalled[dataId]) {
+                            return;
+                        } else {
+                            readyHandlerCalled[dataId] = true;
+                        }
+                    }
+                    totalEditors--;
+                    if (totalEditors === 0 && !loaded) {
+                        loaded = true;
+                        callback();
+                    }
+                });
+        }
+
+        // If CKEDITOR doesn't finish loading for some reason, execute callback
+        // after a reasonable timeout
+        setTimeout(function() {
+            if (!loaded) {
+                callback();
+            }
+        }, 15000);
+    };
+
+    DjangoAutosave.contentIsDifferent = function() {
         // Determines if the autosaved data is different than the current version.
 
-        var saved = Autosave.retrieve()[0];
-        var current = Autosave.captureForm();
+        var savedData = DjangoAutosave.retrieve();
+        var formValues = DjangoAutosave.captureForm();
 
-        // Parse and compare each field
-        saved = JSON.parse(saved);
-        current = JSON.parse(current);
-        
-        // If they're not even the same length, they're different.       
-        if (saved.length !== current.length) {
+        // If they're not even the same length, they're different.
+        if (savedData.formValues.length !== formValues.length) {
             return true;
         }
-        for (var i = saved.length - 1; i >= 0; i--) {
-            if(saved[i].value !== current[i].value && saved[i].name !== 'csrfmiddlewaretoken' ){
-                return true; // The values for non-ignored fields should be identical
+        for (var i = savedData.formValues.length - 1; i >= 0; i--) {
+            // Skip comparison of the csrfmiddlewaretoken value
+            if (savedData.formValues[i].name === 'csrfmiddlewaretoken') { continue; }
+            if (savedData.formValues[i].value !== formValues[i].value) {
+                // The values for fields should be identical
+                return true;
             }
         }
         return false;
     };
 
-    function now() {
-        // This is slightly ridiculous because javascript's epoch time is
-        // in milliseconds by default. We need seconds.
-        return Math.round((new Date).getTime()/1000,0);
-    }
-
-    Autosave.suggestRevert = function(last_autosaved) {
+    DjangoAutosave.suggestRevert = function(last_autosaved) {
         var msg = [
             "It looks like you have a more recent version autosaved at ",
             Date(last_autosaved).toLocaleString(),
-            ". <a href='#revert-to-autosaved'>Revert to that</a> or",
-            " <a href='#ignore-autosaved'>continue with this version</a>?"
+            '. <a href="#revert-to-autosaved">Revert to that</a> or ',
+            ' <a href="#ignore-autosaved">continue with this version</a>? ',
+            ' <a href="#delete-autosave">[discard autosave]</a>'
         ].join('');
-        var $alert = $('<li />');
-        $alert.addClass('info');
-        $alert.hide();
-        $alert.html(msg);
+        var $alert = $('<li id="autosave-message" class="warning"/>').hide().html(msg);
 
-        var $messagelist = $('.messagelist');
-        var $container = $('#content, #content-inner'); // Support both Admin and Grapelli
-        if ($messagelist.length === 0) { 
+        // 'grp-' prefix to support both Admin and Grapelli 2.4
+        var $messagelist = $('.messagelist, .grp-messagelist');
+        var $container = $('#content, #content-inner');
+        if (!$messagelist.length) {
             // Put messagelist in place if it's not already there
-            $messagelist = $('<ul />');
-            $messagelist.addClass('messagelist grp-messagelist');
-            $container.prepend($messagelist);
+            $messagelist = $('<ul class="messagelist grp-messagelist"/>').prependTo($container);
         }
-
         $messagelist.append($alert);
         $alert.fadeIn();
     };
 
-    Autosave.getFormName = function() {
-        // Key names are unique to the page/uri
-        return "autosaved_form.data:" + window.location.pathname;
-    };
-    Autosave.getTimeStampName = function() {
-        // Key names are unique to the page/uri
-        return "autosaved_form.timestamp:" + window.location.pathname;
-    };
-    
-    Autosave.captureForm = function() {
-
-        var form = $('form');
-        var fields = $('form').find('textarea, [name][value]'); // Textareas don't have a value attr, need to be special
-        field_list = [];
-        var field;
-        for (var i = fields.length - 1; i >= 0; i--) {
-            field = fields[i];
-            field_list.push({ 'name': field.name, 'value': $(field).val() });
-            // Val has to come from JQuery because CKeditor hooks it's update function in there.
+    DjangoAutosave.captureForm = function() {
+        var $form = $('form');
+        var $fields = $form.find(':input:not([name="csrfmiddlewaretoken"])');
+        var field_list = [];
+        var $field, name;
+        for (var i = $fields.length - 1; i >= 0; i--) {
+            $field = $fields.eq(i);
+            name = $field.attr('name');
+            if (name) {
+                field_list.push({ 'name': name, 'value': $field.val() });
+            }
         }
-        return JSON.stringify(field_list);
+        return field_list;
     };
 
-    Autosave.save = function() {
-        var data = Autosave.captureForm();
-        localStorage.setItem(Autosave.getFormName(), data);
-        localStorage.setItem(Autosave.getTimeStampName(), now());
+    DjangoAutosave.save = function() {
+        var existingData = DjangoAutosave.retrieve();
+        var data = {
+            formValues: DjangoAutosave.captureForm(),
+            timestamp: Math.round((new Date()).getTime()/1000, 0),
+            saveCount: (DjangoAutosave.saveCount || existingData.saveCount)
+        };
+        localStorage.setItem("autosaved_form:" + location.pathname, JSON.stringify(data));
+        setTimeout(DjangoAutosave.save, 5000);
     };
 
-    Autosave.retrieve = function() {
+    DjangoAutosave.retrieve = function() {
         // Get what's in storage
-        var data = localStorage.getItem(Autosave.getFormName());
-        var timestamp = localStorage.getItem(Autosave.getTimeStampName());
-        return [data, timestamp];
+        var storageItem = localStorage.getItem("autosaved_form:" + location.pathname) || '{}';
+        var data = $.parseJSON(storageItem);
+        if (typeof DjangoAutosave.saveCount === 'undefined') {
+            if (typeof data.saveCount === 'undefined') {
+                DjangoAutosave.saveCount = data.saveCount = 0;
+            } else {
+                DjangoAutosave.saveCount = data.saveCount + 1;
+            }
+        }
+        data.formValues = data.formValues || {};
+        return data;
+    };
+
+    DjangoAutosave.clear = function() {
+        localStorage.removeItem("autosaved_form:" + location.pathname);
     };
 
 })(django.jQuery); // Must use Django jQuery because Django-CKEditor modifies it.
