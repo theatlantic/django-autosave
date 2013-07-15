@@ -94,7 +94,7 @@ class AdminAutoSaveMixin(object):
                 updated = getattr(obj, self.autosave_last_modified_field, None)
                 # Make sure date modified time doesn't predate Unix-time.
                 # I'm pretty confident they didn't do any Django autosaving in 1969.
-                updated = max(updated, datetime.datetime(year=1970, month=1, day=1))
+                updated = max(updated, datetime(year=1970, month=1, day=1))
 
         if obj and not self.has_change_permission(request, obj):
             raise PermissionDenied
