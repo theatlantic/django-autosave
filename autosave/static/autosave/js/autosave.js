@@ -189,8 +189,7 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
             "It looks like you have a more recent version autosaved at ",
             Date(last_autosaved).toLocaleString(),
             '. <a href="#revert-to-autosaved">Revert to that</a> or ',
-            ' <a href="#ignore-autosaved">continue with this version</a>? ',
-            ' <a href="#delete-autosave">[discard autosave]</a>'
+            ' <a href="#ignore-autosaved">continue with this version</a>?'
         ].join('');
         var $alert = $('<li id="autosave-message" class="warning"/>').hide().html(msg);
 

@@ -1,4 +1,3 @@
-import re
 import copy
 import time
 import json
@@ -6,7 +5,7 @@ import functools
 import textwrap
 from datetime import datetime
 
-from django.template.response import TemplateResponse
+from django import forms
 from django.contrib import messages
 from django.contrib.admin.util import unquote
 from django.conf import settings
@@ -18,27 +17,6 @@ from django.utils.encoding import force_unicode
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
-
-
-autosave_js_media_re = re.compile(ur"""(?ixs)
-    # flags: i = case-insensitive; x = free spacing; s = re.DOTALL
-    (<script\s+                 # Tag name
-     (?: [^>"']                 # Tag and attribute names, etc.
-       | "[^"]*"                #     and quoted attribute values
-       | '[^']*'
-     )*?
-    \s src                      # The target attribute name, as a whole word
-    \s* = \s*                   # Attribute name-value delimiter
-    )
-    (['"])                      # The target attribute value
-    (.*autosave_variables\.js)  #   surrounded by single or double quotes
-    \2
-    ((?: [^>"']                 # Any remaining characters 
-      | "[^"]*"                 #     and quoted attribute values
-      | '[^']*'
-    )*
-    >\s*?</script>)
-""")
 
 
 class AdminAutoSaveMixin(object):
@@ -169,56 +147,28 @@ class AdminAutoSaveMixin(object):
         urlpatterns += super(AdminAutoSaveMixin, self).get_urls()
         return urlpatterns
 
-    @property
-    def media(self):
+    def autosave_media(self, obj=None, get_params=''):
+        """
+        Provides a Media object containing autosave-related javascript files.
+
+        This can be appended to the media in add_view and change_view, and
+        enables us to pull autosave information specific to a given object.
+        """
         opts = self.model._meta
         info = (opts.app_label, opts.module_name)
 
-        media = super(AdminAutoSaveMixin, self).media
-        media.add_js((
-            # We call admin:%(app_label)s_%(model)s_autosave_js with 0 (the pk)
-            # with the intention of doing a string replace on the url in
-            # render_change_form(), where we know what the primary key is.
-            #
-            # This is hacky, but necessary since the add_view does not have a
-            # primary key, given that the object has not yet been saved.
-            reverse('admin:%s_%s_autosave_js' % info, args=[0]),
+        pk = getattr(obj, 'pk', None) or 0
+
+        return forms.Media(js=(
+            reverse('admin:%s_%s_autosave_js' % info, args=[pk]) + get_params,
             "%sautosave/js/autosave.js" % settings.STATIC_URL,
         ))
-        return media
 
     def render_change_form(self, request, context, add=False, obj=None, **kwargs):
-        obj_pk = getattr(obj, 'pk', None)
-        media = context.pop('media', None)
-        if media:
+        if 'media' in context:
             get_params = u''
             if 'is_retrieved_from_autosave' in request.POST:
                 get_params = u'?is_recovered=1'
-
-            def replacement(matchobj):
-                tag_start, quote_char, src_val, tag_end = matchobj.groups()
-                src_val += get_params
-                if not add and obj_pk:
-                    src_val = re.sub(r'(?<=/)0(?=/autosave_variables\.js)', str(obj_pk), src_val)
-                return u"".join([tag_start, quote_char, src_val, quote_char, tag_end])
-
-            media = autosave_js_media_re.sub(replacement, unicode(media))
-
-            # This is our hacky string-replacement, described more fully
-            # in the comments for the `media` @property
-            # if not add and obj.pk:
-            #     media = re.sub(r'/0/(autosave_variables\.js)',
-            #         r'/%d/\1%s' % (obj_pk, get_params),
-            #         unicode(media))
-            context['media'] = mark_safe(media)
+            context['media'] += self.autosave_media(obj, get_params=get_params)
         return super(AdminAutoSaveMixin, self).render_change_form(
                 request, context, add=add, obj=obj, **kwargs)
-
-    def changelist_view(self, request, extra_context=None):
-        response = super(AdminAutoSaveMixin, self).changelist_view(request, extra_context)
-        if isinstance(response, TemplateResponse):
-            context = response.context_data
-            media = context.pop('media', None)
-            media = autosave_js_media_re.sub(u'', unicode(media))
-            response.context_data['media'] = mark_safe(media)
-        return response
