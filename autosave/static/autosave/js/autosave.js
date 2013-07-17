@@ -213,6 +213,9 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
             $field = $fields.eq(i);
             name = $field.attr('name');
             if (name) {
+                if ($field.prop('checked') === false && $field.attr('type') == 'checkbox') {
+                    continue;
+                }
                 field_list.push({ 'name': name, 'value': $field.val() });
             }
         }
