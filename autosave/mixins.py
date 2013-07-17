@@ -1,4 +1,3 @@
-import copy
 import time
 import json
 import functools
@@ -12,6 +11,7 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.db.models.fields import FieldDoesNotExist
+from django.forms.util import ErrorDict
 from django.http import HttpResponse, Http404
 from django.utils.encoding import force_unicode
 from django.utils.html import escape
@@ -28,29 +28,25 @@ class AdminAutoSaveMixin(object):
         This is a filthy hack that allows us to return the posted
         data without saving by forcing validation to fail with no errors.
         """
-        Form = super(AdminAutoSaveMixin, self).get_form(request, obj=obj, **kwargs)
-
         if 'is_retrieved_from_autosave' in request.POST:
-            IllegalForm = copy.deepcopy(Form)
-            def is_valid(self):
-                return False
-            IllegalForm.is_valid = is_valid
+            class IllegalForm(kwargs.get('form', self.form)):
+                def is_valid(self): return False
+                def full_clean(self):
+                    self._errors = ErrorDict()
+                    if hasattr(self, 'cleaned_data'):
+                        del self.cleaned_data
 
-            if obj:
-                refresh_action = 'view the original'
-            else:
-                refresh_action = 'clear the form'
+            kwargs['form'] = IllegalForm
 
             messages.info(request, mark_safe((
                 'Successfully loaded from your latest autosave. '
                 '<a href="">Click here</a> to %(refresh_action)s. '
                 '<a href="#delete-autosave">[discard autosave]</a>'
                 ) % {
-                    'refresh_action': refresh_action,
+                    'refresh_action': 'view the original' if obj else 'clear the form',
                 }))
-            return IllegalForm
 
-        return Form
+        return super(AdminAutoSaveMixin, self).get_form(request, obj, **kwargs)
 
     def autosave_js(self, request, object_id, extra_context=None):
         opts = self.model._meta
