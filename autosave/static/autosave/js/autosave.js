@@ -191,7 +191,7 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
             '. <a href="#revert-to-autosaved">Revert to that</a> or ',
             ' <a href="#ignore-autosaved">continue with this version</a>?'
         ].join('');
-        var $alert = $('<li id="autosave-message" class="warning"/>').hide().html(msg);
+        var $alert = $('<li id="autosave-message" class="info"/>').hide().html(msg);
 
         // 'grp-' prefix to support both Admin and Grapelli 2.4
         var $messagelist = $('.messagelist, .grp-messagelist');
