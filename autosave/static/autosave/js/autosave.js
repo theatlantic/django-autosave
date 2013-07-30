@@ -58,6 +58,7 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
         // This adds an element to the page that tells Django forms
         // to deliberately fail validation, and return the autosaved contents.
         $form.append($('<input type="hidden" name="is_retrieved_from_autosave" value="1"/>'));
+        $form.data('isRevert', true);
         $form.submit();
     });
 
@@ -107,6 +108,18 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
             // Start Saving Again
             setTimeout(DjangoAutosave.save, 5000);
         }
+
+        // Clear the autosave data on submit if we're saving on an add_view
+        //
+        // If the save is successful, and we fail to do this, the user will
+        // be prompted to restore their previous autosave the next time
+        // they go to add an object.
+        $('form').on('submit', function() {
+            var $form = $(this);
+            if (config.is_add_view && !$form.data('isRevert')) {
+                DjangoAutosave.clear();
+            }
+        });
     };
 
     DjangoAutosave.onCKEditorLoad = function(callback) {
