@@ -157,7 +157,7 @@ class AdminAutoSaveMixin(object):
 
         return forms.Media(js=(
             reverse('admin:%s_%s_autosave_js' % info, args=[pk]) + get_params,
-            "%sautosave/js/autosave.js" % settings.STATIC_URL,
+            "%sautosave/js/autosave.js?v=1" % settings.STATIC_URL,
         ))
 
     def render_change_form(self, request, context, add=False, obj=None, **kwargs):

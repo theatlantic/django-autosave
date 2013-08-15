@@ -42,12 +42,21 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
 
         // Generate new form data
         var $form = $('form');
-        // Disable the existing form
-        $form.find(':input:not([name="csrfmiddlewaretoken"])').prop('disabled', true);
         var data = DjangoAutosave.retrieve();
 
+        // Disable the existing form
+        $form.find(':input:not([name="csrfmiddlewaretoken"])').remove();
+
         $.each(data.formValues, function(i, attributes) {
-            $('<input type="hidden" />').attr(attributes).appendTo($form);
+            if ($.isArray(attributes.value)) {
+                var $select = $('<select multiple="multiple"></select>').attr({name: attributes.name});
+                $.each(attributes.value, function(i, value) {
+                    $('<option selected="selected"></option>').val(value).appendTo($select);
+                });
+                $select.appendTo($form);
+            } else {
+                $('<input type="hidden" />').attr(attributes).appendTo($form);
+            }
         });
 
         // The CSRF token can change and cause 403's. Always use the current one.
