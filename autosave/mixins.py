@@ -165,6 +165,9 @@ class AdminAutoSaveMixin(object):
             get_params = u''
             if 'is_retrieved_from_autosave' in request.POST:
                 get_params = u'?is_recovered=1'
-            context['media'] += self.autosave_media(obj, get_params=get_params)
+            autosave_media = self.autosave_media(obj, get_params=get_params)
+            if isinstance(context['media'], basestring):
+                autosave_media = unicode(autosave_media)
+            context['media'] += autosave_media
         return super(AdminAutoSaveMixin, self).render_change_form(
                 request, context, add=add, obj=obj, **kwargs)
