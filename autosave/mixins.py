@@ -6,7 +6,9 @@ from datetime import datetime
 
 from django import forms
 from django.contrib import messages
+from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.admin.util import unquote
+from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
@@ -77,6 +79,14 @@ class AdminAutoSaveMixin(object):
 
         if not object_id:
             autosave_url = reverse("admin:%s_%s_add" % info)
+            add_log_entries = LogEntry.objects.filter(
+                    user=request.user,
+                    content_type=ContentType.objects.get_for_model(self.model),
+                    action_flag=ADDITION)
+            try:
+                updated = add_log_entries[0].action_time
+            except IndexError:
+                pass
         else:
             autosave_url = reverse("admin:%s_%s_change" % info, args=[str(object_id)])
             try:
@@ -157,7 +167,7 @@ class AdminAutoSaveMixin(object):
 
         return forms.Media(js=(
             reverse('admin:%s_%s_autosave_js' % info, args=[pk]) + get_params,
-            "%sautosave/js/autosave.js?v=1" % settings.STATIC_URL,
+            "%sautosave/js/autosave.js?v=2" % settings.STATIC_URL,
         ))
 
     def render_change_form(self, request, context, add=False, obj=None, **kwargs):

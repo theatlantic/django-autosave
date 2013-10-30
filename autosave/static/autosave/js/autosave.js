@@ -95,14 +95,15 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
             // No date means this object doesn't exist yet.
             return false;
         }
-        if (config.is_add_view) {
-            // On add_view, there is no timestamp for comparison.
-            // Also no risk of changes being overwritten.
-            last_updated = 0;
-        } else {
-            if (config.last_updated_epoch === null) {
+        if (config.last_updated_epoch === null) {
+            if (!config.is_add_view) {
+                // This indicates an error of some sort. Abort.
                 return false;
+            } else {
+                // The user has never saved an object for this model.
+                last_updated = 0;
             }
+        } else {
             // 15 = an arbitrary margin of error (in seconds) to deal with clock sync
             last_updated = 15 + config.last_updated_epoch + config.client_time_offset;
         }
