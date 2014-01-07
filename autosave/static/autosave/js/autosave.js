@@ -278,7 +278,7 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
     };
 
     DjangoAutosave.prune = function(timeout) {
-        if (timeout === undefined) { timeout = 172800; }
+        if (timeout === undefined) { timeout = 60 * 60 * 24 * 5; }
         oldest_timestamp = Math.floor((new Date()).getTime() / 1000) - timeout;
 
         for (var key in localStorage) {
