@@ -85,6 +85,7 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
             return false;
         }
 
+        DjangoAutosave.prune();
         DjangoAutosave.csrf_token = $('[name="csrfmiddlewaretoken"]').val();
 
         var data = DjangoAutosave.retrieve();
@@ -252,6 +253,7 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
             timestamp: Math.round((new Date()).getTime()/1000, 0),
             saveCount: (DjangoAutosave.saveCount || existingData.saveCount)
         };
+
         localStorage.setItem("autosaved_form:" + location.pathname, JSON.stringify(data));
         setTimeout(DjangoAutosave.save, 5000);
     };
@@ -273,6 +275,21 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
 
     DjangoAutosave.clear = function() {
         localStorage.removeItem("autosaved_form:" + location.pathname);
+    };
+
+    DjangoAutosave.prune = function(timeout) {
+        if (timeout === undefined) { timeout = 172800; }
+        oldest_timestamp = Math.floor((new Date()).getTime() / 1000) - timeout;
+
+        for (var key in localStorage) {
+            if (key.match(/^autosaved_form/)) {
+                var autosave = JSON.parse(localStorage.getItem(key));
+
+                if (autosave.timestamp < oldest_timestamp) {
+                    localStorage.removeItem(key);
+                }
+            }
+        }
     };
 
 })(django.jQuery); // Must use Django jQuery because Django-CKEditor modifies it.
