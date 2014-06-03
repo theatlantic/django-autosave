@@ -170,6 +170,25 @@ class AdminAutoSaveMixin(object):
             "%sautosave/js/autosave.js?v=2" % settings.STATIC_URL,
         ))
 
+    def set_autosave_flag(self, request, response):
+        """
+        If the autosave_success variable was set by javascript, set it to 1 to
+        signal that a save has successfully happened.
+        """
+        if request.COOKIES.get("autosave_success", False) == '0':
+            response.set_cookie("autosave_success", 1)
+        return response
+
+    def response_add(self, request, obj, post_url_continue='../%s/'):
+        response = super(AdminAutoSaveMixin, self).response_add(request, obj, post_url_continue)
+        response = self.set_autosave_flag(request, response)
+        return response
+
+    def response_change(self, request, obj):
+        response = super(AdminAutoSaveMixin, self).response_change(request, obj)
+        response = self.set_autosave_flag(request, response)
+        return response
+
     def render_change_form(self, request, context, add=False, obj=None, **kwargs):
         if 'media' in context:
             get_params = u''
