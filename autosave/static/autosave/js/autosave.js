@@ -3,14 +3,15 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
 (function($) {
 
     // From http://www.quirksmode.org/js/cookies.html
-    function createCookie(name,value,days) {
+    function createCookie(name,value,days,path) {
         if (days) {
             var date = new Date();
             date.setTime(date.getTime()+(days*24*60*60*1000));
             var expires = "; expires="+date.toGMTString();
         }
         else var expires = "";
-        document.cookie = name+"="+value+expires+"; path=/";
+        if (!path) { path = "/"; }
+        document.cookie = name+"="+value+expires+"; path=" + path;
     }
 
     function readCookie(name) {
@@ -116,8 +117,8 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
 
         // If "autosave_success" cookie is falsey, set value to 0 and expire in
         // 24 hours.
-        if(!readCookie("autosave_success")) {
-            createCookie("autosave_success", 0, 1);
+        if(readCookie("autosave_success") !== "1") {
+            createCookie("autosave_success", 0, 1, location.pathname);
         } else if (readCookie("autosave_success") === "1"){
             // If "autosave_success" has been modified by the server, clear the
             // autosave.
