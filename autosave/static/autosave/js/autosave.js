@@ -2,6 +2,32 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
 
 (function($) {
 
+    // From http://www.quirksmode.org/js/cookies.html
+    function createCookie(name,value,days) {
+        if (days) {
+            var date = new Date();
+            date.setTime(date.getTime()+(days*24*60*60*1000));
+            var expires = "; expires="+date.toGMTString();
+        }
+        else var expires = "";
+        document.cookie = name+"="+value+expires+"; path=/";
+    }
+
+    function readCookie(name) {
+        var nameEQ = name + "=";
+        var ca = document.cookie.split(';');
+        for(var i=0;i < ca.length;i++) {
+            var c = ca[i];
+            while (c.charAt(0)==' ') c = c.substring(1,c.length);
+            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+        }
+        return null;
+    }
+
+    function eraseCookie(name) {
+        createCookie(name,"",-1);
+    }
+
     $(document).ready(function() {
         // If django-ckeditor is installed, wait until ckeditor has modified
         // the textarea instances.
@@ -88,6 +114,17 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
         DjangoAutosave.prune();
         DjangoAutosave.csrf_token = $('[name="csrfmiddlewaretoken"]').val();
 
+        // If "autosave_success" cookie is falsey, set value to 0 and expire in
+        // 24 hours.
+        if(!readCookie("autosave_success")) {
+            createCookie("autosave_success", 0, 1);
+        } else if (readCookie("autosave_success") === "1"){
+            // If "autosave_success" has been modified by the server, clear the
+            // autosave.
+            DjangoAutosave.clear();
+            eraseCookie("autosave_success");
+        }
+
         var data = DjangoAutosave.retrieve();
         var config = DjangoAutosave.config;
         var last_updated;
@@ -119,18 +156,6 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
             // Start Saving Again
             setTimeout(DjangoAutosave.save, 5000);
         }
-
-        // Clear the autosave data on submit if we're saving on an add_view
-        //
-        // If the save is successful, and we fail to do this, the user will
-        // be prompted to restore their previous autosave the next time
-        // they go to add an object.
-        $('form').on('submit', function() {
-            var $form = $(this);
-            if (config.is_add_view && !$form.data('isRevert')) {
-                DjangoAutosave.clear();
-            }
-        });
     };
 
     DjangoAutosave.onCKEditorLoad = function(callback) {
