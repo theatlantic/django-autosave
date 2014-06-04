@@ -3,6 +3,7 @@ import json
 import functools
 import textwrap
 from datetime import datetime
+from urlparse import urlparse
 
 from django import forms
 from django.contrib import messages
@@ -176,7 +177,8 @@ class AdminAutoSaveMixin(object):
         signal that a save has successfully happened.
         """
         if request.COOKIES.get("autosave_success", False) == '0':
-            response.set_cookie("autosave_success", 1)
+            referer_path = urlparse(request.META['HTTP_REFERER']).path
+            response.set_cookie("autosave_success", 1, path=referer_path)
         return response
 
     def response_add(self, request, obj, post_url_continue='../%s/'):
