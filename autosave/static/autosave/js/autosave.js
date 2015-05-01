@@ -245,7 +245,7 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
 
         // 'grp-' prefix to support both Admin and Grapelli 2.4
         var $messagelist = $('.messagelist, .grp-messagelist');
-        var $container = $('#content, #content-inner');
+        var $container = $('#content, #content-inner, #grp-content');
         if (!$messagelist.length) {
             // Put messagelist in place if it's not already there
             $messagelist = $('<ul class="messagelist grp-messagelist"/>').prependTo($container);
@@ -255,6 +255,13 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
     };
 
     DjangoAutosave.captureForm = function() {
+        // If TinyMCE is running, ask it to save its editors' contents
+        // back to the places they came from.
+        if (typeof(tinymce) !== "undefined") {
+            tinymce.editors.forEach(function(editor) {
+                editor.save();
+            });
+        }
         var $form = $('form');
         var $fields = $form.find(':input:not([name="csrfmiddlewaretoken"])');
         var field_list = [];

@@ -30,3 +30,7 @@ changes, continuing will abandon them and start creating new save points.
 The contents of a form are autosaved by examining input and textarea value fields. Some javascript-heavy custom
 form widgets only write to the input field they replace when the form is submitted (instead of every time the data changes). 
 As a result, when autosave serializes the form data, the values can be out of date.
+
+There is support for TinyMCE which will ask it to "save" (serialize)
+the contents of its editors back to their sources (we only really care
+about TEXTAREA elements) before we create the autosave backup.
