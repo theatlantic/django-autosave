@@ -255,6 +255,13 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
     };
 
     DjangoAutosave.captureForm = function() {
+        // If TinyMCE is running, ask it to save its editors' contents
+        // back to the places they came from.
+        if (typeof(tinymce) !== "undefined") {
+            tinymce.editors.forEach(function(editor) {
+                editor.save();
+            });
+        }
         var $form = $('form');
         var $fields = $form.find(':input:not([name="csrfmiddlewaretoken"])');
         var field_list = [];
