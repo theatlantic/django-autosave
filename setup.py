@@ -14,7 +14,6 @@ setup(
     author_email='jason@betheshoe.com',
     url='https://github.com/theatlantic/django-autosave',
     packages=['autosave', ],
-    package_data={ 'autosave': ['static/*',] },
     description='Generic autosave for the Django Admin.',
     long_description=open('README.md').read(),
     classifiers=[
