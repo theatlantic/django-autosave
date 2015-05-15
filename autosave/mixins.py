@@ -10,7 +10,6 @@ from django.contrib import messages
 from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.admin.util import unquote
 from django.contrib.contenttypes.models import ContentType
-from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.db.models.fields import FieldDoesNotExist
@@ -168,7 +167,7 @@ class AdminAutoSaveMixin(object):
 
         return forms.Media(js=(
             reverse('admin:%s_%s_autosave_js' % info, args=[pk]) + get_params,
-            "%sautosave/js/autosave.js?v=2" % settings.STATIC_URL,
+            "autosave/js/autosave.js?v=2",
         ))
 
     def set_autosave_flag(self, request, response):
