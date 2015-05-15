@@ -58,7 +58,7 @@ class AdminAutoSaveMixin(object):
         try:
             object_id = int(unquote(object_id))
         except ValueError:
-            return HttpResponse(u"", status=404, mimetype='application/x-javascript')
+            return HttpResponse(u"", status=404, content_type='application/x-javascript')
 
         obj = None
         updated = None
@@ -127,7 +127,7 @@ class AdminAutoSaveMixin(object):
                 return config;
             }})();
         """).strip().format(config_data=json.dumps(js_vars, indent=4, sort_keys=True))
-        return HttpResponse(response_js, mimetype='application/x-javascript')
+        return HttpResponse(response_js, content_type='application/x-javascript')
 
     def get_urls(self):
         """Adds a last-modified checker to the admin urls."""
