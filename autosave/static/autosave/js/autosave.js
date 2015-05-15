@@ -25,8 +25,8 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
         return null;
     }
 
-    function eraseCookie(name) {
-        createCookie(name,"",-1);
+    function eraseCookie(name,path) {
+        createCookie(name,"",-1,path);
     }
 
     $(document).ready(function() {
@@ -117,13 +117,22 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
 
         // If "autosave_success" cookie is falsey, set value to 0 and expire in
         // 24 hours.
+        //
+        // The idea is this:
+        //
+        // 1. We set the cookie to 0 (in Javascript)
+        // 2. On a successful add/change to the backend, the admin sees the 0
+        //    and changes it to a 1.
+        // 3. On next load of the edit page (which is object specific / add)
+        //    Javascript sees the 1-cookie, clears its autosave and then
+        //    unsets the cookie.
         if(readCookie("autosave_success") !== "1") {
             createCookie("autosave_success", 0, 1, location.pathname);
         } else if (readCookie("autosave_success") === "1"){
             // If "autosave_success" has been modified by the server, clear the
             // autosave.
             DjangoAutosave.clear();
-            eraseCookie("autosave_success");
+            eraseCookie("autosave_success", location.pathname);
         }
 
         var data = DjangoAutosave.retrieve();
