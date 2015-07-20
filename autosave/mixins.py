@@ -52,7 +52,7 @@ class AdminAutoSaveMixin(object):
 
     def autosave_js(self, request, object_id, extra_context=None):
         opts = self.model._meta
-        info = (opts.app_label, opts.module_name)
+        info = (opts.app_label, getattr(opts, 'model_name', None) or getattr(opts, 'module_name', None))
 
         try:
             object_id = int(unquote(object_id))
@@ -136,7 +136,7 @@ class AdminAutoSaveMixin(object):
             from django.conf.urls import patterns, url
 
         opts = self.model._meta
-        info = (opts.app_label, opts.module_name)
+        info = (opts.app_label, getattr(opts, 'model_name', None) or getattr(opts, 'module_name', None))
 
         # Use admin_site.admin_view to add permission checking
         def wrap(view):
@@ -161,7 +161,7 @@ class AdminAutoSaveMixin(object):
         enables us to pull autosave information specific to a given object.
         """
         opts = self.model._meta
-        info = (opts.app_label, opts.module_name)
+        info = (opts.app_label, getattr(opts, 'model_name', None) or getattr(opts, 'module_name', None))
 
         pk = getattr(obj, 'pk', None) or 0
 
