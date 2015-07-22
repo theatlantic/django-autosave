@@ -180,8 +180,8 @@ class AdminAutoSaveMixin(object):
             response.set_cookie("autosave_success", 1, path=referer_path)
         return response
 
-    def response_add(self, request, obj, post_url_continue='../%s/'):
-        response = super(AdminAutoSaveMixin, self).response_add(request, obj, post_url_continue)
+    def response_add(self, request, *args, **kwargs):
+        response = super(AdminAutoSaveMixin, self).response_add(request, *args, **kwargs)
         response = self.set_autosave_flag(request, response)
         return response
 
