@@ -8,12 +8,18 @@ from urlparse import urlparse
 from django import forms
 from django.contrib import messages
 from django.contrib.admin.models import LogEntry, ADDITION
-from django.contrib.admin.util import unquote
+try:
+    from django.contrib.admin.utils import unquote
+except ImportError:
+    from django.contrib.admin.util import unquote
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.db.models.fields import FieldDoesNotExist
-from django.forms.util import ErrorDict
+try:
+    from django.forms.utils import ErrorDict
+except ImportError:
+    from django.forms.util import ErrorDict
 from django.http import HttpResponse, Http404
 from django.utils.encoding import force_unicode
 from django.utils.html import escape
