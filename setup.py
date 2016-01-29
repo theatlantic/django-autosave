@@ -9,7 +9,7 @@ except ImportError:
 
 setup(
     name="Django Autosave",
-    version=__import__('autosave').__version__,
+    version="0.7.5",
     author='Jason Goldstein',
     author_email='jason@betheshoe.com',
     url='https://github.com/theatlantic/django-autosave',

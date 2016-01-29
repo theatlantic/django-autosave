@@ -1,2 +1,6 @@
-__version_info__ = (0, 7, 4)
-__version__ = '.'.join(map(str, __version_info__))
+import pkg_resources
+
+try:
+    __version__ = pkg_resources.get_distribution('django-autosave').version
+except pkg_resources.DistributionNotFound:
+    __version__ = None
