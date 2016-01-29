@@ -137,9 +137,9 @@ class AdminAutoSaveMixin(object):
     def get_urls(self):
         """Adds a last-modified checker to the admin urls."""
         try:
-            from django.conf.urls.defaults import patterns, url
+            from django.conf.urls.defaults import url
         except ImportError:
-            from django.conf.urls import patterns, url
+            from django.conf.urls import url
 
         opts = self.model._meta
         info = (opts.app_label, getattr(opts, 'model_name', None) or getattr(opts, 'module_name', None))
@@ -152,12 +152,11 @@ class AdminAutoSaveMixin(object):
 
         # This has to be \w because if it's not, parameters following the obj_id will be
         # caught up in the regular change_view url pattern, and 500.
-        urlpatterns = patterns('',
+        return [
             url(r'^(.+)/autosave_variables\.js',
                 wrap(self.autosave_js),
-                name="%s_%s_autosave_js" % info),)
-        urlpatterns += super(AdminAutoSaveMixin, self).get_urls()
-        return urlpatterns
+                name="%s_%s_autosave_js" % info),
+        ] + super(AdminAutoSaveMixin, self).get_urls()
 
     def autosave_media(self, obj=None, get_params=''):
         """
