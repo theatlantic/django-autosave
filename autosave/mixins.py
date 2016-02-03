@@ -83,29 +83,19 @@ class AdminAutoSaveMixin(object):
         except FieldDoesNotExist:
             raise
 
-        if object_id:
-            # autosave_url = reverse("admin:%s_%s_add" % info)
-            # add_log_entries = LogEntry.objects.filter(
-            #         user=request.user,
-            #         content_type=ContentType.objects.get_for_model(self.model),
-            #         action_flag=ADDITION)
-            # try:
-            #     updated = add_log_entries[0].action_time
-            # except IndexError:
-            #     pass
-            autosave_url = reverse("admin:%s_%s_change" % info, args=[str(object_id)])
-            try:
-                obj = self.get_object(request, object_id)
-            except (ValueError, self.model.DoesNotExist):
-                raise Http404(_('%(name)s object with primary key %(key)r does not exist.') % {
-                    'name': force_unicode(opts.verbose_name),
-                    'key': escape(object_id),
-                })
-            else:
-                updated = getattr(obj, self.autosave_last_modified_field, None)
-                # Make sure date modified time doesn't predate Unix-time.
-                # I'm pretty confident they didn't do any Django autosaving in 1969.
-                updated = max(updated, datetime(year=1970, month=1, day=1))
+        autosave_url = reverse("admin:%s_%s_change" % info, args=[str(object_id)])
+        try:
+            obj = self.get_object(request, object_id)
+        except (ValueError, self.model.DoesNotExist):
+            raise Http404(_('%(name)s object with primary key %(key)r does not exist.') % {
+                'name': force_unicode(opts.verbose_name),
+                'key': escape(object_id),
+            })
+        else:
+            updated = getattr(obj, self.autosave_last_modified_field, None)
+            # Make sure date modified time doesn't predate Unix-time.
+            # I'm pretty confident they didn't do any Django autosaving in 1969.
+            updated = max(updated, datetime(year=1970, month=1, day=1))
 
         if obj and not self.has_change_permission(request, obj):
             raise PermissionDenied
@@ -195,14 +185,13 @@ class AdminAutoSaveMixin(object):
         return response
 
     def render_change_form(self, request, context, add=False, obj=None, **kwargs):
-        if not add:
-            if 'media' in context:
-                get_params = u''
-                if 'is_retrieved_from_autosave' in request.POST:
-                    get_params = u'?is_recovered=1'
-                autosave_media = self.autosave_media(obj, get_params=get_params)
-                if isinstance(context['media'], basestring):
-                    autosave_media = unicode(autosave_media)
-                context['media'] += autosave_media
+        if not add and 'media' in context:
+            get_params = u''
+            if 'is_retrieved_from_autosave' in request.POST:
+                get_params = u'?is_recovered=1'
+            autosave_media = self.autosave_media(obj, get_params=get_params)
+            if isinstance(context['media'], basestring):
+                autosave_media = unicode(autosave_media)
+            context['media'] += autosave_media
         return super(AdminAutoSaveMixin, self).render_change_form(
                 request, context, add=add, obj=obj, **kwargs)
