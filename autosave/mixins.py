@@ -172,7 +172,7 @@ class AdminAutoSaveMixin(object):
 
         return forms.Media(js=(
             reverse('admin:%s_%s_autosave_js' % info, args=[pk]) + get_params,
-            "autosave/js/autosave.js?v=2",
+            "autosave/js/autosave.js?v=3",
         ))
 
     def set_autosave_flag(self, request, response):

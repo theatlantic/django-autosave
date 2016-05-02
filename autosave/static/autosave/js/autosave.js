@@ -163,7 +163,7 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
         if (typeof window.CKEDITOR === 'undefined') {
             return callback();
         }
-        var $textareas = $(".django-ckeditor-textarea");
+        var $textareas = $(".django-ckeditor-textarea:not([id*='__prefix__'])");
 
         var totalEditors = $textareas.length;
         var readyHandlerCalled = {};
