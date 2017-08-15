@@ -245,7 +245,7 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
 
         // 'grp-' prefix to support both Admin and Grapelli 2.4
         var $messagelist = $('.messagelist, .grp-messagelist');
-        var $container = $('#content, #content-inner');
+        var $container = $('#content, #content-inner, #grp-content');
         if (!$messagelist.length) {
             // Put messagelist in place if it's not already there
             $messagelist = $('<ul class="messagelist grp-messagelist"/>').prependTo($container);
