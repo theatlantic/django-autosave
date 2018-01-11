@@ -4,6 +4,7 @@ import functools
 import textwrap
 from datetime import datetime
 from urllib.parse import urlparse
+import pytz
 
 from django import forms
 from django.contrib import messages
@@ -105,7 +106,7 @@ class AdminAutoSaveMixin(object):
                 updated = getattr(obj, self.autosave_last_modified_field, None)
                 # Make sure date modified time doesn't predate Unix-time.
                 # I'm pretty confident they didn't do any Django autosaving in 1969.
-                updated = max(updated, datetime(year=1970, month=1, day=1))
+                updated = max(updated, pytz.utc.localize(datetime(year=1970, month=1, day=1)))
 
         if obj and not self.has_change_permission(request, obj):
             raise PermissionDenied
@@ -200,7 +201,7 @@ class AdminAutoSaveMixin(object):
             if 'is_retrieved_from_autosave' in request.POST:
                 get_params = u'?is_recovered=1'
             autosave_media = self.autosave_media(obj, get_params=get_params)
-            if isinstance(context['media'], basestring):
+            if isinstance(context['media'], str):
                 autosave_media = unicode(autosave_media)
             context['media'] += autosave_media
         return super(AdminAutoSaveMixin, self).render_change_form(
