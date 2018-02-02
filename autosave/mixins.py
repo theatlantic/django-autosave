@@ -3,7 +3,8 @@ import json
 import functools
 import textwrap
 from datetime import datetime
-from urlparse import urlparse
+from urllib.parse import urlparse
+import pytz
 
 from django import forms
 from django.contrib import messages
@@ -21,7 +22,6 @@ try:
 except ImportError:
     from django.forms.util import ErrorDict
 from django.http import HttpResponse, Http404
-from django.utils.encoding import force_unicode
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
@@ -99,14 +99,14 @@ class AdminAutoSaveMixin(object):
                 obj = self.get_object(request, object_id)
             except (ValueError, self.model.DoesNotExist):
                 raise Http404(_('%(name)s object with primary key %(key)r does not exist.') % {
-                    'name': force_unicode(opts.verbose_name),
+                    'name': opts.verbose_name,
                     'key': escape(object_id),
                 })
             else:
                 updated = getattr(obj, self.autosave_last_modified_field, None)
                 # Make sure date modified time doesn't predate Unix-time.
                 # I'm pretty confident they didn't do any Django autosaving in 1969.
-                updated = max(updated, datetime(year=1970, month=1, day=1))
+                updated = max(updated, pytz.utc.localize(datetime(year=1970, month=1, day=1)))
 
         if obj and not self.has_change_permission(request, obj):
             raise PermissionDenied
@@ -201,7 +201,7 @@ class AdminAutoSaveMixin(object):
             if 'is_retrieved_from_autosave' in request.POST:
                 get_params = u'?is_recovered=1'
             autosave_media = self.autosave_media(obj, get_params=get_params)
-            if isinstance(context['media'], basestring):
+            if isinstance(context['media'], str):
                 autosave_media = unicode(autosave_media)
             context['media'] += autosave_media
         return super(AdminAutoSaveMixin, self).render_change_form(
