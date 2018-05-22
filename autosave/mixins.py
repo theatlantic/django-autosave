@@ -3,7 +3,7 @@ import json
 import functools
 import textwrap
 from datetime import datetime
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 from django import forms
 from django.contrib import messages
