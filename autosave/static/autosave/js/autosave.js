@@ -35,14 +35,14 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
         // If this is not done, we will occasionally prompt the user erroneously
         // that they have changes in their autosave, when all that has happened is
         // that CKEDITOR has modified the value with html through its content filters.
-        if (typeof window.CKEDITOR !== 'undefined' && $('.django-ckeditor-textarea').length) {
+        if (typeof window.CKEDITOR !== 'undefined' && $('.django-ckeditor-widget').length) {
             DjangoAutosave.onCKEditorLoad(DjangoAutosave.setup);
         } else {
             DjangoAutosave.setup();
         }
     });
 
-    $(document).on('click', '[href=#ignore-autosaved]', function(e) {
+    $(document).on('click', '[href="#ignore-autosaved"]', function(e) {
         // Clicking this should remove the banner and start autosaving again, replacing
         // the old version.
         e.preventDefault();
@@ -64,7 +64,7 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
     });
 
     // Regenerates the form to submit old data, and posts it.
-    $(document).on('click', '[href=#revert-to-autosaved]', function(e) {
+    $(document).on('click', '[href="#revert-to-autosaved"]', function(e) {
         e.preventDefault();
 
         // Generate new form data
@@ -163,7 +163,7 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
         if (typeof window.CKEDITOR === 'undefined') {
             return callback();
         }
-        var $textareas = $(".django-ckeditor-textarea:not([id*='__prefix__'])");
+        var $textareas = $(".django-ckeditor-widget:not([id*='__prefix__'])");
 
         var totalEditors = $textareas.length;
         var readyHandlerCalled = {};
@@ -273,6 +273,13 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
     };
 
     DjangoAutosave.save = function() {
+        if (typeof window.CKEDITOR !== 'undefined') {
+            // Update textarea elements before save
+            $.each(CKEDITOR.instances, function () {
+                this.updateElement();
+            });
+        }
+
         var existingData = DjangoAutosave.retrieve();
         var data = {
             formValues: DjangoAutosave.captureForm(),

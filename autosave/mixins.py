@@ -21,6 +21,7 @@ try:
 except ImportError:
     from django.forms.util import ErrorDict
 from django.http import HttpResponse, Http404
+from django.utils.encoding import force_text
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
@@ -98,7 +99,7 @@ class AdminAutoSaveMixin(object):
                 obj = self.get_object(request, object_id)
             except (ValueError, self.model.DoesNotExist):
                 raise Http404(_('%(name)s object with primary key %(key)r does not exist.') % {
-                    'name': opts.verbose_name,
+                    'name': force_text(opts.verbose_name),
                     'key': escape(object_id),
                 })
             else:
@@ -171,7 +172,7 @@ class AdminAutoSaveMixin(object):
 
         return forms.Media(js=(
             reverse('admin:%s_%s_autosave_js' % info, args=[pk]) + get_params,
-            "autosave/js/autosave.js?v=3",
+            "autosave/js/autosave.js",
         ))
 
     def set_autosave_flag(self, request, response):
@@ -200,8 +201,8 @@ class AdminAutoSaveMixin(object):
             if 'is_retrieved_from_autosave' in request.POST:
                 get_params = u'?is_recovered=1'
             autosave_media = self.autosave_media(obj, get_params=get_params)
-            if isinstance(context['media'], basestring):
-                autosave_media = unicode(autosave_media)
+            if isinstance(context['media'], str):
+                autosave_media = str(autosave_media)
             context['media'] += autosave_media
         return super(AdminAutoSaveMixin, self).render_change_form(
                 request, context, add=add, obj=obj, **kwargs)
