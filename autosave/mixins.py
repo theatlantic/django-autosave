@@ -78,12 +78,6 @@ class AdminAutoSaveMixin(object):
                     'cls_name': ".".join([self.__module__, self.__class__.__name__]),
                 })
 
-        # Raise exception if self.autosave_last_modified_field is not set
-        try:
-            opts.get_field_by_name(self.autosave_last_modified_field)
-        except FieldDoesNotExist:
-            raise
-
         if not object_id:
             autosave_url = reverse("admin:%s_%s_add" % info)
             add_log_entries = LogEntry.objects.filter(
