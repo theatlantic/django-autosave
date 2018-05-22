@@ -21,7 +21,6 @@ try:
 except ImportError:
     from django.forms.util import ErrorDict
 from django.http import HttpResponse, Http404
-from django.utils.encoding import force_unicode
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
@@ -99,7 +98,7 @@ class AdminAutoSaveMixin(object):
                 obj = self.get_object(request, object_id)
             except (ValueError, self.model.DoesNotExist):
                 raise Http404(_('%(name)s object with primary key %(key)r does not exist.') % {
-                    'name': force_unicode(opts.verbose_name),
+                    'name': opts.verbose_name,
                     'key': escape(object_id),
                 })
             else:
