@@ -5,6 +5,7 @@ import textwrap
 from datetime import datetime
 from urllib.parse import urlparse
 import pytz
+import dateutil
 
 from django import forms
 from django.contrib import messages
@@ -99,6 +100,7 @@ class AdminAutoSaveMixin(object):
                 })
             else:
                 updated = getattr(obj, self.autosave_last_modified_field, None)
+                updated = updated.astimezone(dateutil.tz.tzlocal())
                 # Make sure date modified time doesn't predate Unix-time.
                 # I'm pretty confident they didn't do any Django autosaving in 1969.
                 updated = max(updated, pytz.utc.localize(datetime(year=1970, month=1, day=1)))
