@@ -79,7 +79,7 @@ class AdminAutoSaveMixin(object):
 
         # Raise exception if self.autosave_last_modified_field is not set
         try:
-            opts.get_field_by_name(self.autosave_last_modified_field)
+            opts.get_field(self.autosave_last_modified_field)
         except FieldDoesNotExist:
             raise
 
@@ -105,8 +105,9 @@ class AdminAutoSaveMixin(object):
             else:
                 updated = getattr(obj, self.autosave_last_modified_field, None)
                 # Make sure date modified time doesn't predate Unix-time.
-                # I'm pretty confident they didn't do any Django autosaving in 1969.
-                updated = max(updated, datetime(year=1970, month=1, day=1))
+                if updated:
+                    # I'm pretty confident they didn't do any Django autosaving in 1969.
+                    updated = max(updated, datetime(year=1970, month=1, day=1))
 
         if obj and not self.has_change_permission(request, obj):
             raise PermissionDenied
