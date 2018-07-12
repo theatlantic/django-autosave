@@ -42,7 +42,7 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
         }
     });
 
-    $(document).on('click', '[href=#ignore-autosaved]', function(e) {
+    $(document).on('click', '.ignore-autosaved', function(e) {
         // Clicking this should remove the banner and start autosaving again, replacing
         // the old version.
         e.preventDefault();
@@ -51,7 +51,7 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
         setTimeout(DjangoAutosave.save, 5000);
     });
 
-    $(document).on('click', '[href="#delete-autosave"]', function(e) {
+    $(document).on('click', '.delete-autosave', function(e) {
         e.preventDefault();
         e.stopPropagation();
         if (confirm("Are you sure you want to delete your autosave?")) {
@@ -64,7 +64,7 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
     });
 
     // Regenerates the form to submit old data, and posts it.
-    $(document).on('click', '[href=#revert-to-autosaved]', function(e) {
+    $(document).on('click', '.revert-to-autosaved', function(e) {
         e.preventDefault();
 
         // Generate new form data
@@ -238,8 +238,8 @@ var DjangoAutosave = (window.DjangoAutosave) ? DjangoAutosave : {};
         var msg = [
             "It looks like you have a more recent version autosaved at ",
             Date(last_autosaved).toLocaleString(),
-            '. <a href="#revert-to-autosaved">Revert to that</a> or ',
-            ' <a href="#ignore-autosaved">continue with this version</a>?'
+            '. <a href="#revert-to-autosaved" class="revert-to-autosaved">Revert to that</a> or ',
+            ' <a href="#ignore-autosaved" class="ignore-autosaved">continue with this version</a>?'
         ].join('');
         var $alert = $('<li id="autosave-message" class="info"/>').hide().html(msg);
 

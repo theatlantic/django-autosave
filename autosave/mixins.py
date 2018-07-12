@@ -49,7 +49,7 @@ class AdminAutoSaveMixin(object):
             messages.info(request, mark_safe((
                 'Successfully loaded from your latest autosave. '
                 '<a href="">Click here</a> to %(refresh_action)s. '
-                '<a href="#delete-autosave">[discard autosave]</a>'
+                '<a href="#delete-autosave" class="delete-autosave">[discard autosave]</a>'
                 ) % {
                     'refresh_action': 'view the original' if obj else 'clear the form',
                 }))
