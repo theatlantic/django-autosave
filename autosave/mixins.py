@@ -4,7 +4,7 @@ import json
 import functools
 import textwrap
 from datetime import datetime
-from six.moves.urllib.parse import urlparse
+from django.utils.six.moves.urllib.parse import urlparse
 
 from django import forms
 from django.contrib import messages
