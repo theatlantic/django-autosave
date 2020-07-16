@@ -3,18 +3,20 @@
 from __future__ import absolute_import
 from setuptools import setup, find_packages
 
+import autosave
+
 setup(
     name="Django Autosave",
-    version="1.0.0",
-    author='Jason Goldstein',
-    author_email='jason@betheshoe.com',
+    version='2.0.0',
+    author='The Atlantic',
+    author_email='programmers@theatlantic.com',
     url='https://github.com/theatlantic/django-autosave',
     packages=['autosave'],
     description='Generic autosave for the Django Admin.',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
-    install_requires=['Django>=1.11'],
-    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4',
+    install_requires=['Django>=2.0'],
+    python_requires='>=3.7,<4',
     classifiers=[
         'Development Status :: 5 - Production',
         'License :: OSI Approved :: BSD License',
@@ -23,14 +25,11 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Framework :: Django',
-        'Framework :: Django :: 1.11',
         'Framework :: Django :: 2.0',
         'Framework :: Django :: 2.1',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
+        'Framework :: Django :: 2.2',
+        'Framework :: Django :: 3.0',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
     include_package_data=True,
