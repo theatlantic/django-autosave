@@ -2,7 +2,10 @@
 
 Gives users the option to recover their unsaved changes in the event of a browser crash or lost connection.
 
-**Note:** Version 1.0 supports Django >= 1.11, Python 2.7, Python >= 3.5. Version 2.0 will drop support for Django < 2.0.
+> **Note:**
+> 
+> * Version 1.0 supports Django >= 1.11, Python 2.7, >= 3.5.
+> * Version 2.0 will drop support for Django < 2.0.
 
 ## Setup
 

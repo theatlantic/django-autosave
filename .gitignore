@@ -1,5 +1,10 @@
 *.pyc
+__pycache__
 .DS_Store
-build
-
-*.egg-info
+build/
+dist/
+.python-version
+.tox/
+*.egg-info/
+venv/
+db.sqlite3
