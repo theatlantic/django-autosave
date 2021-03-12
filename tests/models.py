@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib import admin
-from django.conf.urls import url
+from django.urls import re_path as url
 
 from autosave.mixins import AdminAutoSaveMixin
 
