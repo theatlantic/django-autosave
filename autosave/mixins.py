@@ -12,9 +12,8 @@ from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.admin.utils import unquote
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
-from django.conf.urls import url
-from django.core.exceptions import ImproperlyConfigured, PermissionDenied
-from django.db.models.fields import FieldDoesNotExist
+from django.urls import re_path as url
+from django.core.exceptions import ImproperlyConfigured, PermissionDenied, FieldDoesNotExist
 from django.forms.utils import ErrorDict
 from django.http import HttpResponse, Http404
 from django.utils.encoding import force_text
