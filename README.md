@@ -1,3 +1,6 @@
+ ![workflow badge](https://github.com/theatlantic/django-autosave/actions/workflows/test.yml/badge.svg)
+ 
+ 
 # Django Autosave
 
 Gives users the option to recover their unsaved changes in the event of a browser crash or lost connection.
