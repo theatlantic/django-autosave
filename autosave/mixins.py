@@ -16,7 +16,7 @@ from django.urls import re_path as url
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied, FieldDoesNotExist
 from django.forms.utils import ErrorDict
 from django.http import HttpResponse, Http404
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.html import escape
 from django.utils import timezone
 from django.utils.safestring import mark_safe
@@ -100,7 +100,7 @@ class AdminAutoSaveMixin(object):
             try:
                 obj = self.get_object(request, object_id)
             except (ValueError, self.model.DoesNotExist):
-                name = force_text(opts.verbose_name)
+                name = force_str(opts.verbose_name)
                 key = escape(object_id)
                 raise Http404(_(f'{name} object with primary key {key} does not exist.'))
             else:
